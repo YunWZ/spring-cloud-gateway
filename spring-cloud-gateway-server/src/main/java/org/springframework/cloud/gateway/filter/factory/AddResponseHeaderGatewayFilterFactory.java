@@ -35,10 +35,7 @@ public class AddResponseHeaderGatewayFilterFactory extends AbstractNameValueGate
 		return new GatewayFilter() {
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-				String value = ServerWebExchangeUtils.expand(exchange, config.getValue());
-				exchange.getResponse().getHeaders().add(config.getName(), value);
-
-				return chain.filter(exchange);
+				return chain.filter(exchange).then(Mono.fromRunnable(() -> addHeader(exchange, config)));
 			}
 
 			@Override
@@ -47,6 +44,11 @@ public class AddResponseHeaderGatewayFilterFactory extends AbstractNameValueGate
 						.append(config.getName(), config.getValue()).toString();
 			}
 		};
+	}
+
+	private void addHeader(ServerWebExchange exchange, NameValueConfig config) {
+		String value = ServerWebExchangeUtils.expand(exchange, config.getValue());
+		exchange.getResponse().getHeaders().add(config.getName(), value);
 	}
 
 }
